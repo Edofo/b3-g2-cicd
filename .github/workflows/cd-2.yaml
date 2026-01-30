@@ -110,7 +110,8 @@ jobs:
               run: |
                 git add .
                 git commit -m "Bump version to ${{ inputs.version_type }}"
-                git push origin main
+                git push origin HEAD
+                git push origin --tags
 
             - name: Create release
               run: |
