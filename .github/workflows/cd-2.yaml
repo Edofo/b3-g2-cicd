@@ -50,13 +50,11 @@ jobs:
               with:
                 node-version: 22
 
-            - name: Install dependencies
-              run: npm ci
-
-            # - name: Download artifact
-            #   uses: actions/download-artifact@v5
-            #   with:
-            #     name: cicd-artifact
+            - name: Download artifact
+              uses: actions/download-artifact@v4
+              with:
+                name: cicd-artifact
+                path: node_modules
 
             - name: Run lint
               run: npm run lint
@@ -73,14 +71,11 @@ jobs:
               with:
                 node-version: 22
 
-            - name: Install dependencies
-              run: npm ci
-
-            # - name: Download artifact
-            #   uses: actions/download-artifact@v4
-            #   with:
-            #     name: cicd-artifact
-            #     path: ./artifacts
+            - name: Download artifact
+              uses: actions/download-artifact@v4
+              with:
+                name: cicd-artifact
+                path: node_modules
 
             - name: Run test
               run: npm run test
@@ -103,16 +98,18 @@ jobs:
                 git config --global user.email "github-actions@github.com"
 
             - name: Bump version
+              id: version
               run: |
-                npm version ${{ inputs.version_type }}
+                NEW_VERSION=$(npm version ${{ inputs.version_type }})
+                echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
-            - name: Commit changes
+            - name: Push changes
               run: |
-                git add .
-                git commit -m "Bump version to ${{ inputs.version_type }}"
                 git push origin HEAD
                 git push origin --tags
 
             - name: Create release
+              env:
+                GH_TOKEN: ${{ github.token }}
               run: |
-                gh release create v${{ inputs.version_type }} --generate-notes
+                gh release create ${{ steps.version.outputs.new_version }} --generate-notes
